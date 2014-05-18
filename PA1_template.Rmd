@@ -3,18 +3,74 @@
 
 ## Loading and preprocessing the data
 
+```{r}
+activity_data <- read.csv(unz('activity.zip',filename='activity.csv'))
+head(activity_data)
+summary(activity_data)
+```
 
 
 ## What is mean total number of steps taken per day?
 
+```{r}
+steps_by_day <- xtabs(steps ~ date, data=activity_data, na.action=na.omit)
+head(steps_by_day)
+hist(steps_by_day, )
+```
+
+Summary statistics:
+
+* Mean of total steps per day: **`r mean(steps_by_day)`**
+* Median of total steps per day: **`r median(steps_by_day)`**
+
+```{r, echo=TRUE}
+mean(steps_by_day)
+median(steps_by_day)
+```
 
 
 ## What is the average daily activity pattern?
 
+```{r}
+avg_steps_per_interval <- aggregate(steps ~ interval, data=activity_data, FUN=mean, na.action=na.omit)
+head(avg_steps_per_interval)
+plot(avg_steps_per_interval, type="l")
+```
 
+Interval **`r avg_steps_per_interval$interval[which.max(avg_steps_per_interval$steps)]
+`** contains the maximum number of steps, on average across all the days in the dataset.
 
 ## Imputing missing values
 
+Total numer is missing step values in the data set is: **`r sum(is.na(activity_data$steps))`**
 
+Filling-in non avaliable step values by using the average value of for the interval across all days.
+
+```{r}
+merged_data <- merge(activity_data,avg_steps_per_interval, by='interval')
+complete_activity_data <- data.frame(
+    steps = ifelse(is.na(merged_data$steps.x), merged_data$steps.y, merged_data$steps.x),
+    date = merged_data$date, 
+    interval = merged_data$interval
+)
+head(completed_activity_data)
+```
+
+
+```{r}
+complete_steps_by_day <- xtabs(steps ~ date, data=complete_activity_data, na.action=na.omit)
+head(complete_steps_by_day)
+hist(complete_steps_by_day)
+```
+
+
+Summary statistics:
+* Mean of total steps per day: **`r mean(complete_steps_by_day)`**
+* Median of total steps per day: **`r median(complete_steps_by_day)`**
+
+```{r, echo=TRUE}
+mean(complete_steps_by_day)
+median(complete_steps_by_day)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
